@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Comparateur - Analyse d'Influenceurs</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .neon-border-pink { border: 1px solid #ec4899; box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
+        .neon-border-cyan { border: 1px solid #06b6d4; box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); }
+        .neon-border-yellow { border: 1px solid #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.2); }
+        .neon-border-purple { border: 1px solid #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+        
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #06b6d4;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #resultsSection { display: none; }
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-10">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-tight">
+                Aura Comparateur
+            </h1>
+            <p class="text-gray-400 text-lg md:text-xl">Analyse et score d'engagement multi-réseaux</p>
+            <p class="text-sm text-green-400 mt-2">Connecté au Backend Aura Serveur ✓</p>
+        </header>
+
+        <!-- Inputs Influenceurs -->
+        <div class="glass-panel p-6 md:p-8 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
+                <span class="bg-cyan-500 text-slate-900 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-sm">1</span>
+                Sélection des 4 Cibles
+            </h2>
+            <p class="text-gray-400 text-sm mb-4">Pour YouTube, utilisez le nom exact ou l'identifiant sans le @ (ex: 'Squeezie', pas '@squeezie').</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Influenceur 1 -->
+                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-cyan">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-cyan-400">Profil 1</h3>
+                        <select id="plat1" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                        </select>
+                    </div>
+                    <input type="text" id="inf1" placeholder="Ex: Squeezie" value="Squeezie" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <!-- Influenceur 2 -->
+                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-pink">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-pink-400">Profil 2</h3>
+                        <select id="plat2" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
+                            <option value="tiktok">TikTok</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="facebook">Facebook</option>
+                        </select>
+                    </div>
+                    <input type="text" id="inf2" placeholder="Ex: Khaby Lame" value="khaby.lame" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-pink-400">
+                </div>
+
+                <!-- Influenceur 3 -->
+                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-yellow">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-yellow-400">Profil 3</h3>
+                        <select id="plat3" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
+                            <option value="facebook">Facebook</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                        </select>
+                    </div>
+                    <input type="text" id="inf3" placeholder="Ex: Nas Daily" value="NasDaily" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                </div>
+
+                <!-- Influenceur 4 -->
+                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-purple">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-purple-400">Profil 4</h3>
+                        <select id="plat4" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                        </select>
+                    </div>
+                    <input type="text" id="inf4" placeholder="Ex: MrBeast" value="MrBeast" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-purple-400">
+                </div>
+            </div>
+
+            <div class="mt-8 text-center flex flex-col items-center">
+                <button onclick="startAnalysis()" class="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 text-lg">
+                    Lancer l'Analyse via Serveur
+                </button>
+                <div id="loadingStatus" class="mt-4 flex items-center text-cyan-400 hidden">
+                    <div class="loader mr-3"></div>
+                    <span>Scrapping et extraction des données via API en cours...</span>
+                </div>
+                <div id="errorStatus" class="mt-4 text-red-400 hidden font-bold">
+                    Erreur de connexion au serveur Backend. Assurez-vous qu'il tourne sur le port 3000.
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Résultats -->
+        <div id="resultsSection">
+            
+            <h2 class="text-3xl font-extrabold mb-6 text-white flex items-center border-b border-slate-700 pb-4">
+                <span class="bg-pink-500 text-white rounded-full w-10 h-10 inline-flex items-center justify-center mr-4 text-xl shadow-[0_0_15px_rgba(236,72,153,0.5)]">2</span>
+                Rapports d'Analyse (Aura Score)
+            </h2>
+
+            <!-- Fiches textuelles -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10" id="textReportsContainer">
+            </div>
+
+            <h2 class="text-3xl font-extrabold mb-6 text-white flex items-center border-b border-slate-700 pb-4 mt-12">
+                <span class="bg-purple-500 text-white rounded-full w-10 h-10 inline-flex items-center justify-center mr-4 text-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">3</span>
+                Visualisation Globale
+            </h2>
+
+            <!-- Graphiques -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                
+                <div class="glass-panel p-6">
+                    <h3 class="text-center font-bold text-gray-300 mb-4">Profil d'Engagement (Radar)</h3>
+                    <div class="relative h-72 w-full"><canvas id="radarChart"></canvas></div>
+                </div>
+
+                <div class="glass-panel p-6">
+                    <h3 class="text-center font-bold text-gray-300 mb-4">Score d'Engagement AURA (Qualité)</h3>
+                    <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
+                </div>
+
+                <div class="glass-panel p-6">
+                    <h3 class="text-center font-bold text-gray-300 mb-4">Répartition de l'Audience Totale</h3>
+                    <div class="relative h-64 w-full"><canvas id="pieAudienceChart"></canvas></div>
+                </div>
+
+                <div class="glass-panel p-6">
+                    <h3 class="text-center font-bold text-gray-300 mb-4">Répartition des Interactions</h3>
+                    <div class="relative h-64 w-full"><canvas id="pieInteractionChart"></canvas></div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let radarChartInst = null;
+        let barChartInst = null;
+        let pieAudienceInst = null;
+        let pieInteractionInst = null;
+
+        const colors = [
+            { bg: 'rgba(6, 182, 212, 0.6)', border: '#06b6d4', solid: '#06b6d4' },
+            { bg: 'rgba(236, 72, 153, 0.6)', border: '#ec4899', solid: '#ec4899' },
+            { bg: 'rgba(234, 179, 8, 0.6)', border: '#eab308', solid: '#eab308' },
+            { bg: 'rgba(168, 85, 247, 0.6)', border: '#a855f7', solid: '#a855f7' }
+        ];
+
+        const formatNumber = (num) => {
+            if (num === null || isNaN(num)) return "N/A";
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num;
+        };
+
+        function calculateAuraScore(data) {
+            if (!data.views || !data.subs || data.views === 0 || data.subs === 0) return 0;
+            const engagementRate = (data.interactions / data.views) * 100; 
+            const loyaltyRate = (data.views / data.subs) * 100;
+            let rawScore = (engagementRate * 5) + (loyaltyRate * 0.5);
+            let finalScore = Math.min(Math.max(rawScore, 1), 99.9);
+            return finalScore.toFixed(1);
+        }
+
+        async function startAnalysis() {
+            document.getElementById('loadingStatus').classList.remove('hidden');
+            document.getElementById('errorStatus').classList.add('hidden');
+            document.getElementById('resultsSection').style.display = 'none';
+
+            const profiles = [
+                { name: document.getElementById('inf1').value || 'Inconnu 1', plat: document.getElementById('plat1').value },
+                { name: document.getElementById('inf2').value || 'Inconnu 2', plat: document.getElementById('plat2').value },
+                { name: document.getElementById('inf3').value || 'Inconnu 3', plat: document.getElementById('plat3').value },
+                { name: document.getElementById('inf4').value || 'Inconnu 4', plat: document.getElementById('plat4').value }
+            ];
+
+            let results = [];
+            let hasError = false;
+
+            for (let i = 0; i < 4; i++) {
+                try {
+                    let data = await fetchProfileDataFromServer(profiles[i].name, profiles[i].plat);
+                    
+                    if(data && data.success === false) {
+                        console.error("Erreur API pour", profiles[i].name, data.error);
+                         // On met des stats vides si l'API échoue
+                        data = { name: profiles[i].name, platform: profiles[i].plat, subs: 0, views: 0, interactions: 0 };
+                    }
+
+                    data.color = colors[i];
+                    data.score = calculateAuraScore(data);
+                    results.push(data);
+                } catch (e) {
+                    hasError = true;
+                    console.error("Crash connexion backend");
+                }
+            }
+
+            document.getElementById('loadingStatus').classList.add('hidden');
+
+            if (hasError) {
+                 document.getElementById('errorStatus').classList.remove('hidden');
+                 return; // On arrête là
+            }
+
+            generateTextReports(results);
+            updateAllCharts(results);
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // ========================================================
+        // LA FONCTION QUI APPELLE TON BACKEND NODE.JS
+        // ========================================================
+        async function fetchProfileDataFromServer(username, platform) {
+            // URL de ton serveur local (À changer par ton URL Render ou Google Cloud plus tard)
+            const backendUrl = 'http://localhost:3000/api/analyze'; 
+            
+            try {
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        platform: platform
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    return result.data;
+                } else {
+                     return { success: false, error: result.error };
+                }
+
+            } catch (error) {
+                console.error(`Impossible de contacter le serveur pour ${username}:`, error);
+                throw error; // Renvoie l'erreur pour afficher le message d'erreur rouge
+            }
+        }
+        // ========================================================
+
+        function generateTextReports(dataArray) {
+            const container = document.getElementById('textReportsContainer');
+            container.innerHTML = ''; 
+
+            const borderColors = ['neon-border-cyan', 'neon-border-pink', 'neon-border-yellow', 'neon-border-purple'];
+            const textColors = ['text-cyan-400', 'text-pink-400', 'text-yellow-400', 'text-purple-400'];
+
+            dataArray.forEach((data, index) => {
+                let verdictText = "";
+                let verdictColor = "";
+                if (data.score == 0) { verdictText = "Données indisponibles (API)"; verdictColor = "text-gray-500"; }
+                else if (data.score > 75) { verdictText = "Excellent : Organique."; verdictColor = "text-green-400"; }
+                else if (data.score > 40) { verdictText = "Moyen : Risque modéré."; verdictColor = "text-yellow-400"; }
+                else { verdictText = "Suspect : Ferme à clics possible."; verdictColor = "text-red-400"; }
+
+                const cardHTML = `
+                    <div class="glass-panel p-5 ${borderColors[index]} relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 bg-slate-800 px-3 py-1 rounded-bl-lg text-xs uppercase font-bold text-gray-300 border-l border-b border-slate-600">
+                            ${data.platform}
+                        </div>
+                        <h3 class="text-xl font-bold ${textColors[index]} mb-1 truncate" title="${data.name}">${data.name}</h3>
+                        
+                        <div class="mt-4 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Abonnés:</span>
+                                <span class="font-bold text-white">${formatNumber(data.subs)}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Vues Moy.:</span>
+                                <span class="font-bold text-white">${formatNumber(data.views)}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Interactions:</span>
+                                <span class="font-bold text-white">${formatNumber(data.interactions)}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-4 border-t border-slate-700">
+                            <div class="text-center">
+                                <span class="block text-xs text-gray-500 uppercase tracking-widest">Aura Score</span>
+                                <span class="text-3xl font-black text-white drop-shadow-md">${data.score}<span class="text-lg text-gray-400">/100</span></span>
+                            </div>
+                            <p class="text-center text-xs mt-2 font-semibold ${verdictColor}">${verdictText}</p>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHTML;
+            });
+        }
+
+        function updateAllCharts(dataArray) {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Outfit', sans-serif";
+            
+            const labels = dataArray.map(d => d.name);
+            const scores = dataArray.map(d => parseFloat(d.score) || 0);
+            const subsData = dataArray.map(d => d.subs || 0);
+            const viewsData = dataArray.map(d => d.views || 0);
+            const interData = dataArray.map(d => d.interactions || 0);
+            const bgColors = dataArray.map(d => d.color.bg);
+            const borderColors = dataArray.map(d => d.color.border);
+            const solidColors = dataArray.map(d => d.color.solid);
+
+            if(radarChartInst) radarChartInst.destroy();
+            const ctxRadar = document.getElementById('radarChart').getContext('2d');
+            const maxSubs = Math.max(...subsData, 1);
+            const maxViews = Math.max(...viewsData, 1);
+            const maxInter = Math.max(...interData, 1);
+
+            let radarDatasets = dataArray.map((d, i) => {
+                return {
+                    label: d.name,
+                    data: [
+                        ((d.subs || 0) / maxSubs) * 100,
+                        ((d.views || 0) / maxViews) * 100,
+                        ((d.interactions || 0) / maxInter) * 100
+                    ],
+                    backgroundColor: d.color.bg.replace('0.6', '0.2'),
+                    borderColor: d.color.border,
+                    pointBackgroundColor: d.color.solid,
+                    borderWidth: 2
+                }
+            });
+
+            radarChartInst = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Abonnés', 'Vues', 'Interactions'],
+                    datasets: radarDatasets
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { r: { angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, pointLabels: { color: '#cbd5e1', font: { size: 12 } }, ticks: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
+                }
+            });
+
+            if(barChartInst) barChartInst.destroy();
+            const ctxBar = document.getElementById('barChart').getContext('2d');
+            barChartInst = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Aura Score (/100)', data: scores, backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1, borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.05)' } }, x: { grid: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            if(pieAudienceInst) pieAudienceInst.destroy();
+            const ctxPieAud = document.getElementById('pieAudienceChart').getContext('2d');
+            pieAudienceInst = new Chart(ctxPieAud, {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: subsData, backgroundColor: solidColors, borderColor: '#1e293b', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+            });
+
+            if(pieInteractionInst) pieInteractionInst.destroy();
+            const ctxPieInt = document.getElementById('pieInteractionChart').getContext('2d');
+            pieInteractionInst = new Chart(ctxPieInt, {
+                type: 'pie',
+                data: { labels: labels, datasets: [{ data: interData, backgroundColor: solidColors, borderColor: '#1e293b', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+            });
+        }
+    </script>
+</body>
+</html>
