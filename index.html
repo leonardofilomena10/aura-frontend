@@ -256,8 +256,8 @@
         // LA FONCTION QUI APPELLE TON BACKEND NODE.JS
         // ========================================================
         async function fetchProfileDataFromServer(username, platform) {
-            // URL de ton serveur local (À changer par ton URL Render ou Google Cloud plus tard)
-            const backendUrl = 'https://aura-backend-66u0.onrender.com/'; 
+            // URL de ton serveur Render AVEC la route /api/analyze à la fin
+            const backendUrl = 'https://aura-backend-66u0.onrender.com/api/analyze'; 
             
             try {
                 const response = await fetch(backendUrl, {
@@ -284,9 +284,45 @@
                 }
 
             } catch (error) {
-                console.error(`Impossible de contacter le serveur pour ${username}:`, error);
-                throw error; // Renvoie l'erreur pour afficher le message d'erreur rouge
+                console.warn(`Serveur injoignable pour ${username}. Passage en mode simulation.`);
+                
+                // On transforme le message d'erreur rouge en avertissement jaune
+                const errorDiv = document.getElementById('errorStatus');
+                errorDiv.classList.remove('hidden');
+                errorDiv.classList.replace('text-red-400', 'text-yellow-400');
+                errorDiv.innerHTML = "⚠️ Serveur Backend non détecté. Affichage des données simulées (Mode Démo).";
+                
+                // On renvoie des fausses données pour que l'interface ne plante pas
+                return getSimulatedStats(username, platform);
             }
+        }
+
+        // Fonction de simulation de secours (Fallback)
+        function getSimulatedStats(username, platform) {
+            let baseMultiplier = (username.length * 100000) + Math.floor(Math.random() * 500000);
+            let subs, views, interactions;
+            
+            if (platform === 'youtube') {
+                subs = baseMultiplier * 2;
+                views = subs * (Math.random() * 0.5 + 0.1); 
+                interactions = views * (Math.random() * 0.05 + 0.01); 
+            } else if (platform === 'tiktok') {
+                subs = baseMultiplier * 5; 
+                views = subs * (Math.random() * 1.5 + 0.2); 
+                interactions = views * (Math.random() * 0.08 + 0.02);
+            } else { 
+                subs = baseMultiplier * 1.5;
+                views = subs * (Math.random() * 0.3 + 0.05);
+                interactions = views * (Math.random() * 0.03 + 0.005);
+            }
+
+            return {
+                name: username,
+                platform: platform,
+                subs: Math.floor(subs),
+                views: Math.floor(views),
+                interactions: Math.floor(interactions)
+            };
         }
         // ========================================================
 
