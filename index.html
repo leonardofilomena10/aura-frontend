@@ -51,7 +51,7 @@
                 Aura Comparateur
             </h1>
             <p class="text-gray-400 text-lg md:text-xl">Analyse et score d'engagement multi-réseaux</p>
-            <p class="text-sm text-green-400 mt-2">Connecté au Backend Aura Serveur ✓</p>
+            <p class="text-sm text-green-400 mt-2">Mode Production - Connecté à Render ✓</p>
         </header>
 
         <!-- Inputs Influenceurs -->
@@ -81,12 +81,12 @@
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-pink-400">Profil 2</h3>
                         <select id="plat2" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
-                            <option value="tiktok">TikTok</option>
                             <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
                             <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf2" placeholder="Ex: Khaby Lame" value="khaby.lame" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-pink-400">
+                    <input type="text" id="inf2" placeholder="Ex: Michou" value="Michou" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-pink-400">
                 </div>
 
                 <!-- Influenceur 3 -->
@@ -94,12 +94,12 @@
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-yellow-400">Profil 3</h3>
                         <select id="plat3" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
-                            <option value="facebook">Facebook</option>
                             <option value="youtube">YouTube</option>
                             <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf3" placeholder="Ex: Nas Daily" value="NasDaily" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="inf3" placeholder="Ex: Amixem" value="Amixem" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-yellow-400">
                 </div>
 
                 <!-- Influenceur 4 -->
@@ -122,10 +122,10 @@
                 </button>
                 <div id="loadingStatus" class="mt-4 flex items-center text-cyan-400 hidden">
                     <div class="loader mr-3"></div>
-                    <span>Scrapping et extraction des données via API en cours...</span>
+                    <span>Scrapping en cours (peut prendre 30s si le serveur se réveille)...</span>
                 </div>
                 <div id="errorStatus" class="mt-4 text-red-400 hidden font-bold">
-                    Erreur de connexion au serveur Backend. Assurez-vous qu'il tourne sur le port 3000.
+                    ❌ Erreur de connexion au serveur Backend.
                 </div>
             </div>
         </div>
@@ -216,63 +216,60 @@
                 { name: document.getElementById('inf4').value || 'Inconnu 4', plat: document.getElementById('plat4').value }
             ];
 
-            let results = [];
-            let hasError = false;
+            try {
+                // Optimisation de production : Lancement des requêtes en parallèle
+                const fetchPromises = profiles.map(p => fetchProfileDataFromServer(p.name, p.plat));
+                const fetchedData = await Promise.all(fetchPromises);
 
-            for (let i = 0; i < 4; i++) {
-                try {
-                    let data = await fetchProfileDataFromServer(profiles[i].name, profiles[i].plat);
-                    
-                    if(data && data.success === false) {
-                        console.error("Erreur API pour", profiles[i].name, data.error);
-                         // On met des stats vides si l'API échoue
-                        data = { name: profiles[i].name, platform: profiles[i].plat, subs: 0, views: 0, interactions: 0 };
+                let results = fetchedData.map((data, i) => {
+                    let processedData = data;
+                    if (data && data.success === false) {
+                        processedData = { name: profiles[i].name, platform: profiles[i].plat, subs: 0, views: 0, interactions: 0, error: data.error };
                     }
+                    processedData.color = colors[i];
+                    processedData.score = calculateAuraScore(processedData);
+                    return processedData;
+                });
 
-                    data.color = colors[i];
-                    data.score = calculateAuraScore(data);
-                    results.push(data);
-                } catch (e) {
-                    hasError = true;
-                    console.error("Crash connexion backend");
-                }
+                document.getElementById('loadingStatus').classList.add('hidden');
+                
+                generateTextReports(results);
+                updateAllCharts(results);
+                
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error("Crash global :", error);
+                document.getElementById('loadingStatus').classList.add('hidden');
+                document.getElementById('errorStatus').classList.remove('hidden');
+                document.getElementById('errorStatus').innerHTML = "❌ Erreur critique lors de l'analyse.";
             }
-
-            document.getElementById('loadingStatus').classList.add('hidden');
-
-            if (hasError) {
-                 document.getElementById('errorStatus').classList.remove('hidden');
-                 return; // On arrête là
-            }
-
-            generateTextReports(results);
-            updateAllCharts(results);
-            
-            document.getElementById('resultsSection').style.display = 'block';
-            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         }
 
         // ========================================================
         // LA FONCTION QUI APPELLE TON BACKEND NODE.JS
         // ========================================================
         async function fetchProfileDataFromServer(username, platform) {
-            // URL de ton serveur Render AVEC la route /api/analyze à la fin
+            // URL configurée sur ton vrai serveur Render
             const backendUrl = 'https://aura-backend-66u0.onrender.com/api/analyze'; 
             
             try {
+                // Timeout de 15 secondes pour éviter le blocage si Render dort
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
                 const response = await fetch(backendUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        platform: platform
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, platform: platform }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
 
                 if (!response.ok) {
-                    throw new Error(`Erreur HTTP: ${response.status}`);
+                    return { success: false, error: `Erreur HTTP ${response.status}` };
                 }
 
                 const result = await response.json();
@@ -280,49 +277,14 @@
                 if (result.success) {
                     return result.data;
                 } else {
-                     return { success: false, error: result.error };
+                     return { success: false, error: result.error || "Non trouvé" };
                 }
 
             } catch (error) {
-                console.warn(`Serveur injoignable pour ${username}. Passage en mode simulation.`);
-                
-                // On transforme le message d'erreur rouge en avertissement jaune
-                const errorDiv = document.getElementById('errorStatus');
-                errorDiv.classList.remove('hidden');
-                errorDiv.classList.replace('text-red-400', 'text-yellow-400');
-                errorDiv.innerHTML = "⚠️ Serveur Backend non détecté. Affichage des données simulées (Mode Démo).";
-                
-                // On renvoie des fausses données pour que l'interface ne plante pas
-                return getSimulatedStats(username, platform);
+                console.error(`Serveur injoignable pour ${username}:`, error);
+                // Affichera ce message proprement sur la carte si ça échoue
+                return { success: false, error: "Serveur injoignable/bloqué" };
             }
-        }
-
-        // Fonction de simulation de secours (Fallback)
-        function getSimulatedStats(username, platform) {
-            let baseMultiplier = (username.length * 100000) + Math.floor(Math.random() * 500000);
-            let subs, views, interactions;
-            
-            if (platform === 'youtube') {
-                subs = baseMultiplier * 2;
-                views = subs * (Math.random() * 0.5 + 0.1); 
-                interactions = views * (Math.random() * 0.05 + 0.01); 
-            } else if (platform === 'tiktok') {
-                subs = baseMultiplier * 5; 
-                views = subs * (Math.random() * 1.5 + 0.2); 
-                interactions = views * (Math.random() * 0.08 + 0.02);
-            } else { 
-                subs = baseMultiplier * 1.5;
-                views = subs * (Math.random() * 0.3 + 0.05);
-                interactions = views * (Math.random() * 0.03 + 0.005);
-            }
-
-            return {
-                name: username,
-                platform: platform,
-                subs: Math.floor(subs),
-                views: Math.floor(views),
-                interactions: Math.floor(interactions)
-            };
         }
         // ========================================================
 
@@ -336,7 +298,8 @@
             dataArray.forEach((data, index) => {
                 let verdictText = "";
                 let verdictColor = "";
-                if (data.score == 0) { verdictText = "Données indisponibles (API)"; verdictColor = "text-gray-500"; }
+                if (data.error) { verdictText = `❌ ${data.error}`; verdictColor = "text-red-500 font-bold text-xs"; }
+                else if (data.score == 0) { verdictText = "Données à 0"; verdictColor = "text-gray-500"; }
                 else if (data.score > 75) { verdictText = "Excellent : Organique."; verdictColor = "text-green-400"; }
                 else if (data.score > 40) { verdictText = "Moyen : Risque modéré."; verdictColor = "text-yellow-400"; }
                 else { verdictText = "Suspect : Ferme à clics possible."; verdictColor = "text-red-400"; }
