@@ -51,7 +51,7 @@
                 Aura Comparateur
             </h1>
             <p class="text-gray-400 text-lg md:text-xl">Analyse et score d'engagement multi-réseaux</p>
-            <p class="text-sm text-green-400 mt-2">Mode Production - Connecté à Render ✓</p>
+            <p class="text-sm text-green-400 mt-2">Mode Production - Scraping API Actif ✓</p>
         </header>
 
         <!-- Inputs Influenceurs -->
@@ -60,7 +60,7 @@
                 <span class="bg-cyan-500 text-slate-900 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-sm">1</span>
                 Sélection des 4 Cibles
             </h2>
-            <p class="text-gray-400 text-sm mb-4">Pour YouTube, utilisez le nom exact ou l'identifiant sans le @ (ex: 'Squeezie', pas '@squeezie').</p>
+            <p class="text-gray-400 text-sm mb-4">Indiquez l'identifiant exact de l'influenceur (ex: sans le @ pour YouTube, avec ou sans pour TikTok).</p>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Influenceur 1 -->
@@ -118,14 +118,14 @@
 
             <div class="mt-8 text-center flex flex-col items-center">
                 <button onclick="startAnalysis()" class="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 text-lg">
-                    Lancer l'Analyse via Serveur
+                    Lancer l'Analyse Croisée
                 </button>
                 <div id="loadingStatus" class="mt-4 flex items-center text-cyan-400 hidden">
                     <div class="loader mr-3"></div>
-                    <span>Scrapping en cours (peut prendre 30s si le serveur se réveille)...</span>
+                    <span>Analyse des profils en cours par nos robots (cela peut prendre jusqu'à 60 secondes)...</span>
                 </div>
                 <div id="errorStatus" class="mt-4 text-red-400 hidden font-bold">
-                    ❌ Erreur de connexion au serveur Backend.
+                    ❌ Erreur critique lors de la communication avec le serveur.
                 </div>
             </div>
         </div>
@@ -217,7 +217,7 @@
             ];
 
             try {
-                // Optimisation de production : Lancement des requêtes en parallèle
+                // Requêtes exécutées en parallèle pour optimiser le temps
                 const fetchPromises = profiles.map(p => fetchProfileDataFromServer(p.name, p.plat));
                 const fetchedData = await Promise.all(fetchPromises);
 
@@ -243,7 +243,6 @@
                 console.error("Crash global :", error);
                 document.getElementById('loadingStatus').classList.add('hidden');
                 document.getElementById('errorStatus').classList.remove('hidden');
-                document.getElementById('errorStatus').innerHTML = "❌ Erreur critique lors de l'analyse.";
             }
         }
 
@@ -251,13 +250,13 @@
         // LA FONCTION QUI APPELLE TON BACKEND NODE.JS
         // ========================================================
         async function fetchProfileDataFromServer(username, platform) {
-            // URL configurée sur ton vrai serveur Render
+            // L'URL de ton back-end sur Render
             const backendUrl = 'https://aura-backend-66u0.onrender.com/api/analyze'; 
             
             try {
-                // Timeout de 15 secondes pour éviter le blocage si Render dort
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
+                // Nouveau Timeout de 60 secondes pour laisser le temps à Apify de scraper
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
 
                 const response = await fetch(backendUrl, {
                     method: 'POST',
@@ -282,7 +281,6 @@
 
             } catch (error) {
                 console.error(`Serveur injoignable pour ${username}:`, error);
-                // Affichera ce message proprement sur la carte si ça échoue
                 return { success: false, error: "Serveur injoignable/bloqué" };
             }
         }
