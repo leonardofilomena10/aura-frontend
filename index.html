@@ -293,14 +293,45 @@
 
         function buildPlatformCards(platform, datasets) {
             const container = document.getElementById(`section-${platform}`).querySelector('.cards-container');
-            if(!container) return; // Sécurité anti-crash
+            if(!container) return; 
             
             datasets.forEach(data => {
                 let verdictText = data.error ? `❌ ${data.error}` : (data.score > 75 ? "Excellent engagement" : (data.score > 40 ? "Engagement modéré" : "Faible performance"));
                 let verdictColor = data.error ? "text-red-400" : (data.score > 70 ? "text-green-400" : "text-yellow-400");
 
+                // Génération de l'Analyse Détaillée en 5 phrases
+                let detailedAnalysis = "";
+                if (!data.error && data.subs > 0) {
+                    const engagementRate = data.views ? ((data.interactions / data.views) * 100).toFixed(1) : 0;
+                    const loyaltyRate = data.subs ? ((data.views / data.subs) * 100).toFixed(1) : 0;
+                    const score = parseFloat(data.score);
+
+                    // 1. Verdict global
+                    let s1 = score >= 75 ? `Avec un Aura Score de ${score}/100, ce profil démontre une excellente santé communautaire.` : (score >= 40 ? `L'Aura Score de ${score}/100 révèle une audience moyennement engagée avec un potentiel de croissance.` : `Un Aura Score critique de ${score}/100 indique de sérieuses lacunes dans l'engagement réel de l'audience.`);
+                    
+                    // 2. Fidélité (Vues/Subs)
+                    let s2 = loyaltyRate > 20 ? `Le ratio de vues/abonnés atteint ${loyaltyRate}%, prouvant que la communauté est très active et consomme assidûment le contenu.` : (loyaltyRate > 5 ? `La fidélité se situe à ${loyaltyRate}%, un score standard indiquant qu'une partie régulière des abonnés suit les publications.` : `Seulement ${loyaltyRate}% des abonnés visionnent les contenus, suggérant une audience fantôme ou une perte de vitesse algorithmique.`);
+                    
+                    // 3. Interactions (Interactions/Vues)
+                    let s3 = engagementRate > 5 ? `Le taux de conversion des vues en interactions est exceptionnel (${engagementRate}%), ce qui traduit une véritable capacité à fédérer.` : (engagementRate > 1.5 ? `Le taux d'interaction s'établit à ${engagementRate}%, montrant un engagement dans la moyenne du secteur.` : `Le très faible taux d'interaction (${engagementRate}%) montre que l'audience regarde mais ne s'investit pas émotionnellement.`);
+                    
+                    // 4. Authenticité & Fake Followers
+                    let s4 = score >= 70 ? `Ces dynamiques croisées confirment une audience organique, écartant fermement le risque de fermes à clics.` : (score >= 40 ? `Bien que la base soit réelle, la dilution de l'engagement nécessite d'optimiser les appels à l'action de l'influenceur.` : `Un tel déséquilibre alerte sur un risque élevé d'audience artificielle (achat de followers) ou d'un profil obsolète.`);
+                    
+                    // 5. Recommandation ROI
+                    let s5 = score >= 75 ? `En conclusion, ce profil est un choix stratégique premium, hautement recommandé pour des partenariats ROIstes.` : (score >= 40 ? `En conclusion, ce profil reste pertinent pour de la notoriété globale, à condition d'adapter le coût d'acquisition.` : `En conclusion, ce profil est fortement déconseillé pour des campagnes de conversion en l'état actuel des métriques.`);
+                    
+                    detailedAnalysis = `
+                        <div class="mt-4 pt-4 border-t border-slate-700 flex-grow">
+                            <h5 class="text-xs font-bold text-indigo-400 mb-2 uppercase tracking-wide">Rapport d'Audit</h5>
+                            <p class="text-xs text-gray-300 leading-relaxed text-justify bg-slate-900/60 p-3 rounded-lg border-l-2 border-indigo-500 shadow-inner">
+                                ${s1} ${s2} ${s3} ${s4} ${s5}
+                            </p>
+                        </div>`;
+                }
+
                 const card = `
-                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700 flex flex-col h-full transition hover:border-indigo-500">
                         <h4 class="text-lg font-bold text-white truncate">${data.name}</h4>
                         <div class="mt-3 space-y-1.5 text-sm text-gray-300">
                             <div class="flex justify-between"><span>Abonnés :</span><span class="font-bold text-white">${formatNumber(data.subs)}</span></div>
@@ -312,6 +343,7 @@
                             <span class="text-2xl font-black text-white">${data.score}/100</span>
                             <p class="text-xs ${verdictColor} mt-1 font-semibold">${verdictText}</p>
                         </div>
+                        ${detailedAnalysis}
                     </div>
                 `;
                 container.innerHTML += card;
