@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Comparateur - Analyse d'Influenceurs</title>
+    <title>Aura Comparateur - Rapports Professionnels</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Librairies pour le PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         body {
@@ -24,9 +27,9 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
         }
-        .neon-border-pink { border: 1px solid #ec4899; box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
         .neon-border-cyan { border: 1px solid #06b6d4; box-shadow: 0 0 10px rgba(6, 182, 212, 0.2); }
-        .neon-border-yellow { border: 1px solid #eab308; box-shadow: 0 0 10px rgba(234, 179, 8, 0.2); }
+        .neon-border-pink { border: 1px solid #ec4899; box-shadow: 0 0 10px rgba(236, 72, 153, 0.2); }
+        .neon-border-blue { border: 1px solid #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
         .neon-border-purple { border: 1px solid #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
         
         .loader {
@@ -38,7 +41,6 @@
             animation: spin 1s ease infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         #resultsSection { display: none; }
     </style>
 </head>
@@ -50,20 +52,18 @@
             <h1 class="text-4xl md:text-6xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 tracking-tight">
                 Aura Comparateur
             </h1>
-            <p class="text-gray-400 text-lg md:text-xl">Analyse et score d'engagement multi-réseaux</p>
-            <p class="text-sm text-green-400 mt-2">Mode Production - Scraping API Actif ✓</p>
+            <p class="text-gray-400 text-lg md:text-xl">Analyse et rapports d'audits sectoriels</p>
         </header>
 
         <!-- Inputs Influenceurs -->
         <div class="glass-panel p-6 md:p-8 mb-8">
             <h2 class="text-2xl font-bold mb-6 text-white flex items-center">
-                <span class="bg-cyan-500 text-slate-900 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-sm">1</span>
-                Sélection des 4 Cibles
+                <span class="bg-cyan-500 text-slate-900 rounded-full w-8 h-8 inline-flex items-center justify-center mr-3 text-sm font-bold">1</span>
+                Configuration de l'audit
             </h2>
-            <p class="text-gray-400 text-sm mb-4">Indiquez l'identifiant exact de l'influenceur (ex: sans le @ pour YouTube, avec ou sans pour TikTok).</p>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Influenceur 1 -->
+                <!-- Profil 1 -->
                 <div class="p-4 rounded-xl bg-slate-800/50 neon-border-cyan">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-cyan-400">Profil 1</h3>
@@ -73,36 +73,36 @@
                             <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf1" placeholder="Ex: Squeezie" value="Squeezie" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-cyan-400">
+                    <input type="text" id="inf1" value="Squeezie" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-cyan-400">
                 </div>
 
-                <!-- Influenceur 2 -->
+                <!-- Profil 2 -->
                 <div class="p-4 rounded-xl bg-slate-800/50 neon-border-pink">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-pink-400">Profil 2</h3>
                         <select id="plat2" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
-                            <option value="youtube">YouTube</option>
                             <option value="tiktok">TikTok</option>
+                            <option value="youtube">YouTube</option>
                             <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf2" placeholder="Ex: Michou" value="Michou" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-pink-400">
+                    <input type="text" id="inf2" value="khaby.lame" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-pink-400">
                 </div>
 
-                <!-- Influenceur 3 -->
-                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-yellow">
+                <!-- Profil 3 -->
+                <div class="p-4 rounded-xl bg-slate-800/50 neon-border-blue">
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-yellow-400">Profil 3</h3>
+                        <h3 class="font-bold text-blue-400">Profil 3</h3>
                         <select id="plat3" class="bg-slate-900 text-xs border border-slate-700 rounded p-1 text-white">
+                            <option value="facebook">Facebook</option>
                             <option value="youtube">YouTube</option>
                             <option value="tiktok">TikTok</option>
-                            <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf3" placeholder="Ex: Amixem" value="Amixem" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-yellow-400">
+                    <input type="text" id="inf3" value="NasDaily" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-blue-400">
                 </div>
 
-                <!-- Influenceur 4 -->
+                <!-- Profil 4 -->
                 <div class="p-4 rounded-xl bg-slate-800/50 neon-border-purple">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-purple-400">Profil 4</h3>
@@ -112,62 +112,71 @@
                             <option value="facebook">Facebook</option>
                         </select>
                     </div>
-                    <input type="text" id="inf4" placeholder="Ex: MrBeast" value="MrBeast" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-purple-400">
+                    <input type="text" id="inf4" value="Michou" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-white text-sm focus:outline-none focus:border-purple-400">
                 </div>
             </div>
 
             <div class="mt-8 text-center flex flex-col items-center">
                 <button onclick="startAnalysis()" class="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 text-lg">
-                    Lancer l'Analyse Croisée
+                    Lancer l'Analyse Ciblée
                 </button>
                 <div id="loadingStatus" class="mt-4 flex items-center text-cyan-400 hidden">
                     <div class="loader mr-3"></div>
-                    <span>Analyse des profils en cours par nos robots (cela peut prendre jusqu'à 60 secondes)...</span>
+                    <span>Extraction et calcul des métriques en cours (jusqu'à 60 secondes)...</span>
                 </div>
                 <div id="errorStatus" class="mt-4 text-red-400 hidden font-bold">
-                    ❌ Erreur critique lors de la communication avec le serveur.
+                    ❌ Erreur lors de la communication réseau.
                 </div>
             </div>
         </div>
 
-        <!-- Section Résultats -->
-        <div id="resultsSection">
+        <!-- Section Résultats Globale -->
+        <div id="resultsSection" class="space-y-12">
             
-            <h2 class="text-3xl font-extrabold mb-6 text-white flex items-center border-b border-slate-700 pb-4">
-                <span class="bg-pink-500 text-white rounded-full w-10 h-10 inline-flex items-center justify-center mr-4 text-xl shadow-[0_0_15px_rgba(236,72,153,0.5)]">2</span>
-                Rapports d'Analyse (Aura Score)
-            </h2>
-
-            <!-- Fiches textuelles -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-10" id="textReportsContainer">
+            <!-- Zone d'actions globales -->
+            <div class="flex justify-end mb-4">
+                <button onclick="exportToPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-6 rounded-lg shadow flex items-center space-x-2 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span>Exporter le Rapport PDF</span>
+                </button>
             </div>
 
-            <h2 class="text-3xl font-extrabold mb-6 text-white flex items-center border-b border-slate-700 pb-4 mt-12">
-                <span class="bg-purple-500 text-white rounded-full w-10 h-10 inline-flex items-center justify-center mr-4 text-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">3</span>
-                Visualisation Globale
-            </h2>
-
-            <!-- Graphiques -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+            <div id="pdfContainer" class="space-y-12 p-2">
                 
-                <div class="glass-panel p-6">
-                    <h3 class="text-center font-bold text-gray-300 mb-4">Profil d'Engagement (Radar)</h3>
-                    <div class="relative h-72 w-full"><canvas id="radarChart"></canvas></div>
+                <!-- SECTION YOUTUBE -->
+                <div id="section-youtube" class="glass-panel p-6 border border-red-500/30 hidden">
+                    <h2 class="text-2xl font-black text-red-400 mb-6 flex items-center border-b border-slate-700 pb-3">
+                        🔴 ANALYSE DISCIPLINAIRE : YOUTUBE
+                    </h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 cards-container"></div>
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-yt-bar"></canvas></div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-yt-pie"></canvas></div>
+                    </div>
                 </div>
 
-                <div class="glass-panel p-6">
-                    <h3 class="text-center font-bold text-gray-300 mb-4">Score d'Engagement AURA (Qualité)</h3>
-                    <div class="relative h-72 w-full"><canvas id="barChart"></canvas></div>
+                <!-- SECTION TIKTOK -->
+                <div id="section-tiktok" class="glass-panel p-6 border border-pink-500/30 hidden">
+                    <h2 class="text-2xl font-black text-pink-400 mb-6 flex items-center border-b border-slate-700 pb-3">
+                        🎵 ANALYSE DISCIPLINAIRE : TIKTOK
+                    </h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 cards-container"></div>
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-tt-bar"></canvas></div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-tt-pie"></canvas></div>
+                    </div>
                 </div>
 
-                <div class="glass-panel p-6">
-                    <h3 class="text-center font-bold text-gray-300 mb-4">Répartition de l'Audience Totale</h3>
-                    <div class="relative h-64 w-full"><canvas id="pieAudienceChart"></canvas></div>
-                </div>
-
-                <div class="glass-panel p-6">
-                    <h3 class="text-center font-bold text-gray-300 mb-4">Répartition des Interactions</h3>
-                    <div class="relative h-64 w-full"><canvas id="pieInteractionChart"></canvas></div>
+                <!-- SECTION FACEBOOK -->
+                <div id="section-facebook" class="glass-panel p-6 border border-blue-500/30 hidden">
+                    <h2 class="text-2xl font-black text-blue-400 mb-6 flex items-center border-b border-slate-700 pb-3">
+                        📘 ANALYSE DISCIPLINAIRE : FACEBOOK
+                    </h2>
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 cards-container"></div>
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-fb-bar"></canvas></div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl relative h-64"><canvas id="chart-fb-pie"></canvas></div>
+                    </div>
                 </div>
 
             </div>
@@ -176,17 +185,7 @@
     </div>
 
     <script>
-        let radarChartInst = null;
-        let barChartInst = null;
-        let pieAudienceInst = null;
-        let pieInteractionInst = null;
-
-        const colors = [
-            { bg: 'rgba(6, 182, 212, 0.6)', border: '#06b6d4', solid: '#06b6d4' },
-            { bg: 'rgba(236, 72, 153, 0.6)', border: '#ec4899', solid: '#ec4899' },
-            { bg: 'rgba(234, 179, 8, 0.6)', border: '#eab308', solid: '#eab308' },
-            { bg: 'rgba(168, 85, 247, 0.6)', border: '#a855f7', solid: '#a855f7' }
-        ];
+        let charts = {};
 
         const formatNumber = (num) => {
             if (num === null || isNaN(num)) return "N/A";
@@ -200,8 +199,7 @@
             const engagementRate = (data.interactions / data.views) * 100; 
             const loyaltyRate = (data.views / data.subs) * 100;
             let rawScore = (engagementRate * 5) + (loyaltyRate * 0.5);
-            let finalScore = Math.min(Math.max(rawScore, 1), 99.9);
-            return finalScore.toFixed(1);
+            return Math.min(Math.max(rawScore, 1), 99.9).toFixed(1);
         }
 
         async function startAnalysis() {
@@ -209,210 +207,183 @@
             document.getElementById('errorStatus').classList.add('hidden');
             document.getElementById('resultsSection').style.display = 'none';
 
+            // Masquer les sections au départ
+            ['youtube', 'tiktok', 'facebook'].forEach(p => {
+                document.getElementById(`section-${p}`).classList.add('hidden');
+                document.getElementById(`section-${p}`).querySelector('.cards-container').innerHTML = '';
+            });
+
             const profiles = [
-                { name: document.getElementById('inf1').value || 'Inconnu 1', plat: document.getElementById('plat1').value },
-                { name: document.getElementById('inf2').value || 'Inconnu 2', plat: document.getElementById('plat2').value },
-                { name: document.getElementById('inf3').value || 'Inconnu 3', plat: document.getElementById('plat3').value },
-                { name: document.getElementById('inf4').value || 'Inconnu 4', plat: document.getElementById('plat4').value }
-            ];
+                { name: document.getElementById('inf1').value, plat: document.getElementById('plat1').value },
+                { name: document.getElementById('inf2').value, plat: document.getElementById('plat2').value },
+                { name: document.getElementById('inf3').value, plat: document.getElementById('plat3').value },
+                { name: document.getElementById('inf4').value, plat: document.getElementById('plat4').value }
+            ].filter(p => p.name.trim() !== "");
 
             try {
-                // Requêtes exécutées en parallèle pour optimiser le temps
                 const fetchPromises = profiles.map(p => fetchProfileDataFromServer(p.name, p.plat));
                 const fetchedData = await Promise.all(fetchPromises);
 
-                let results = fetchedData.map((data, i) => {
-                    let processedData = data;
+                let sortedData = { youtube: [], tiktok: [], facebook: [] };
+
+                fetchedData.forEach((data, i) => {
+                    let processed = data;
                     if (data && data.success === false) {
-                        processedData = { name: profiles[i].name, platform: profiles[i].plat, subs: 0, views: 0, interactions: 0, error: data.error };
+                        processed = { name: profiles[i].name, platform: profiles[i].plat, subs: 0, views: 0, interactions: 0, error: data.error };
                     }
-                    processedData.color = colors[i];
-                    processedData.score = calculateAuraScore(processedData);
-                    return processedData;
+                    processed.score = calculateAuraScore(processed);
+                    if (sortedData[processed.platform]) {
+                        sortedData[processed.platform].push(processed);
+                    }
                 });
 
                 document.getElementById('loadingStatus').classList.add('hidden');
-                
-                generateTextReports(results);
-                updateAllCharts(results);
-                
+
+                // Génération des vues indépendantes
+                Object.keys(sortedData).forEach(platform => {
+                    if (sortedData[platform].length > 0) {
+                        const sectionEl = document.getElementById(`section-${platform}`);
+                        sectionEl.classList.remove('hidden');
+                        buildPlatformCards(platform, sortedData[platform]);
+                        buildPlatformCharts(platform, sortedData[platform]);
+                    }
+                });
+
                 document.getElementById('resultsSection').style.display = 'block';
                 document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
-                console.error("Crash global :", error);
+                console.error(error);
                 document.getElementById('loadingStatus').classList.add('hidden');
                 document.getElementById('errorStatus').classList.remove('hidden');
             }
         }
 
-        // ========================================================
-        // LA FONCTION QUI APPELLE TON BACKEND NODE.JS
-        // ========================================================
         async function fetchProfileDataFromServer(username, platform) {
-            // L'URL de ton back-end sur Render
             const backendUrl = 'https://aura-backend-66u0.onrender.com/api/analyze'; 
-            
             try {
                 const controller = new AbortController();
-                // Nouveau Timeout de 60 secondes pour laisser le temps à Apify de scraper
                 const timeoutId = setTimeout(() => controller.abort(), 60000);
-
                 const response = await fetch(backendUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: username, platform: platform }),
+                    body: JSON.stringify({ username, platform }),
                     signal: controller.signal
                 });
-                
                 clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    return { success: false, error: `Erreur HTTP ${response.status}` };
-                }
-
+                if (!response.ok) return { success: false, error: `Erreur ${response.status}` };
                 const result = await response.json();
-                
-                if (result.success) {
-                    return result.data;
-                } else {
-                     return { success: false, error: result.error || "Non trouvé" };
-                }
-
+                return result.success ? result.data : { success: false, error: result.error };
             } catch (error) {
-                console.error(`Serveur injoignable pour ${username}:`, error);
-                return { success: false, error: "Serveur injoignable/bloqué" };
+                return { success: false, error: "Timeout/Serveur Inaccessible" };
             }
         }
-        // ========================================================
 
-        function generateTextReports(dataArray) {
-            const container = document.getElementById('textReportsContainer');
-            container.innerHTML = ''; 
+        function buildPlatformCards(platform, datasets) {
+            const container = document.getElementById(`section-${platform}`).querySelector('.cards-container');
+            
+            datasets.forEach(data => {
+                let verdictText = data.error ? `❌ ${data.error}` : (data.score > 75 ? "Excellent engagement" : (data.score > 40 ? "Engagement modéré" : "Faible performance"));
+                let verdictColor = data.error ? "text-red-400" : (data.score > 70 ? "text-green-400" : "text-yellow-400");
 
-            const borderColors = ['neon-border-cyan', 'neon-border-pink', 'neon-border-yellow', 'neon-border-purple'];
-            const textColors = ['text-cyan-400', 'text-pink-400', 'text-yellow-400', 'text-purple-400'];
-
-            dataArray.forEach((data, index) => {
-                let verdictText = "";
-                let verdictColor = "";
-                if (data.error) { verdictText = `❌ ${data.error}`; verdictColor = "text-red-500 font-bold text-xs"; }
-                else if (data.score == 0) { verdictText = "Données à 0"; verdictColor = "text-gray-500"; }
-                else if (data.score > 75) { verdictText = "Excellent : Organique."; verdictColor = "text-green-400"; }
-                else if (data.score > 40) { verdictText = "Moyen : Risque modéré."; verdictColor = "text-yellow-400"; }
-                else { verdictText = "Suspect : Ferme à clics possible."; verdictColor = "text-red-400"; }
-
-                const cardHTML = `
-                    <div class="glass-panel p-5 ${borderColors[index]} relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 bg-slate-800 px-3 py-1 rounded-bl-lg text-xs uppercase font-bold text-gray-300 border-l border-b border-slate-600">
-                            ${data.platform}
+                const card = `
+                    <div class="bg-slate-800/80 p-5 rounded-xl border border-slate-700">
+                        <h4 class="text-lg font-bold text-white truncate">${data.name}</h4>
+                        <div class="mt-3 space-y-1.5 text-sm text-gray-300">
+                            <div class="flex justify-between"><span>Abonnés :</span><span class="font-bold text-white">${formatNumber(data.subs)}</span></div>
+                            <div class="flex justify-between"><span>Vues moy. :</span><span class="font-bold text-white">${formatNumber(data.views)}</span></div>
+                            <div class="flex justify-between"><span>Interactions :</span><span class="font-bold text-white">${formatNumber(data.interactions)}</span></div>
                         </div>
-                        <h3 class="text-xl font-bold ${textColors[index]} mb-1 truncate" title="${data.name}">${data.name}</h3>
-                        
-                        <div class="mt-4 space-y-2">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Abonnés:</span>
-                                <span class="font-bold text-white">${formatNumber(data.subs)}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Vues Moy.:</span>
-                                <span class="font-bold text-white">${formatNumber(data.views)}</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-400">Interactions:</span>
-                                <span class="font-bold text-white">${formatNumber(data.interactions)}</span>
-                            </div>
-                        </div>
-
-                        <div class="mt-5 pt-4 border-t border-slate-700">
-                            <div class="text-center">
-                                <span class="block text-xs text-gray-500 uppercase tracking-widest">Aura Score</span>
-                                <span class="text-3xl font-black text-white drop-shadow-md">${data.score}<span class="text-lg text-gray-400">/100</span></span>
-                            </div>
-                            <p class="text-center text-xs mt-2 font-semibold ${verdictColor}">${verdictText}</p>
+                        <div class="mt-4 pt-3 border-t border-slate-700 text-center">
+                            <span class="text-xs text-gray-400 block uppercase">Aura Score</span>
+                            <span class="text-2xl font-black text-white">${data.score}/100</span>
+                            <p class="text-xs ${verdictColor} mt-1 font-semibold">${verdictText}</p>
                         </div>
                     </div>
                 `;
-                container.innerHTML += cardHTML;
+                container.innerHTML += card;
             });
         }
 
-        function updateAllCharts(dataArray) {
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = "'Outfit', sans-serif";
-            
-            const labels = dataArray.map(d => d.name);
-            const scores = dataArray.map(d => parseFloat(d.score) || 0);
-            const subsData = dataArray.map(d => d.subs || 0);
-            const viewsData = dataArray.map(d => d.views || 0);
-            const interData = dataArray.map(d => d.interactions || 0);
-            const bgColors = dataArray.map(d => d.color.bg);
-            const borderColors = dataArray.map(d => d.color.border);
-            const solidColors = dataArray.map(d => d.color.solid);
+        function buildPlatformCharts(platform, datasets) {
+            const labels = datasets.map(d => d.name);
+            const scores = datasets.map(d => parseFloat(d.score) || 0);
+            const audience = datasets.map(d => d.subs || 0);
 
-            if(radarChartInst) radarChartInst.destroy();
-            const ctxRadar = document.getElementById('radarChart').getContext('2d');
-            const maxSubs = Math.max(...subsData, 1);
-            const maxViews = Math.max(...viewsData, 1);
-            const maxInter = Math.max(...interData, 1);
+            const colorMap = {
+                youtube: '#f87171',
+                tiktok: '#f472b6',
+                facebook: '#60a5fa'
+            };
 
-            let radarDatasets = dataArray.map((d, i) => {
-                return {
-                    label: d.name,
-                    data: [
-                        ((d.subs || 0) / maxSubs) * 100,
-                        ((d.views || 0) / maxViews) * 100,
-                        ((d.interactions || 0) / maxInter) * 100
-                    ],
-                    backgroundColor: d.color.bg.replace('0.6', '0.2'),
-                    borderColor: d.color.border,
-                    pointBackgroundColor: d.color.solid,
-                    borderWidth: 2
-                }
-            });
+            // Reset Charts si existants
+            if (charts[`${platform}-bar`]) charts[`${platform}-bar`].destroy();
+            if (charts[`${platform}-pie`]) charts[`${platform}-pie`].destroy();
 
-            radarChartInst = new Chart(ctxRadar, {
-                type: 'radar',
-                data: {
-                    labels: ['Abonnés', 'Vues', 'Interactions'],
-                    datasets: radarDatasets
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { r: { angleLines: { color: 'rgba(255, 255, 255, 0.1)' }, grid: { color: 'rgba(255, 255, 255, 0.1)' }, pointLabels: { color: '#cbd5e1', font: { size: 12 } }, ticks: { display: false } } },
-                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } }
-                }
-            });
-
-            if(barChartInst) barChartInst.destroy();
-            const ctxBar = document.getElementById('barChart').getContext('2d');
-            barChartInst = new Chart(ctxBar, {
+            // Bar Chart (Scores)
+            const ctxBar = document.getElementById(`chart-${platform}-bar`).getContext('2d');
+            charts[`${platform}-bar`] = new Chart(ctxBar, {
                 type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: [{ label: 'Aura Score (/100)', data: scores, backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1, borderRadius: 6 }]
+                    labels,
+                    datasets: [{ label: 'Aura Score', data: scores, backgroundColor: colorMap[platform], borderRadius: 4 }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.05)' } }, x: { grid: { display: false } } },
-                    plugins: { legend: { display: false } }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } } }
                 }
             });
 
-            if(pieAudienceInst) pieAudienceInst.destroy();
-            const ctxPieAud = document.getElementById('pieAudienceChart').getContext('2d');
-            pieAudienceInst = new Chart(ctxPieAud, {
+            // Pie Chart (Audience)
+            const ctxPie = document.getElementById(`chart-${platform}-pie`).getContext('2d');
+            charts[`${platform}-pie`] = new Chart(ctxPie, {
                 type: 'doughnut',
-                data: { labels: labels, datasets: [{ data: subsData, backgroundColor: solidColors, borderColor: '#1e293b', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+                data: {
+                    labels,
+                    datasets: [{ data: audience, backgroundColor: ['#22d3ee', '#a78bfa', '#fbbf24', '#f43f5e'] }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } }
+                }
             });
+        }
 
-            if(pieInteractionInst) pieInteractionInst.destroy();
-            const ctxPieInt = document.getElementById('pieInteractionChart').getContext('2d');
-            pieInteractionInst = new Chart(ctxPieInt, {
-                type: 'pie',
-                data: { labels: labels, datasets: [{ data: interData, backgroundColor: solidColors, borderColor: '#1e293b', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#cbd5e1' } } } }
+        async function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const element = document.getElementById('pdfContainer');
+            
+            // Effet visuel temporaire pour forcer un rendu net
+            element.style.backgroundColor = "#0f172a";
+            
+            await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#0f172a"
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 190; 
+                const pageHeight = 295;  
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 10;
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(16);
+                doc.setTextColor(255, 255, 255);
+                
+                doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                doc.save('Rapport_Aura_Comparateur.pdf');
             });
         }
     </script>
